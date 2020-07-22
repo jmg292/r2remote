@@ -1,0 +1,13 @@
+{
+    "enabled_plugins": [
+        "list_filesystem",
+        "r2_analysis",
+        "r2_graph",
+        "r2_open"
+    ],
+    "identity_file_path": "keys\\local.key",
+    "authorized_keys_folder": "keys\\authorized_keys",
+    "bind_addr": "0.0.0.0",
+    "bind_port": 40960,
+    "socket_timeout": 5
+}
