@@ -11,7 +11,15 @@ class ListVolumes(BaseCommandHandler):
         available_drives = ["/"]
         if "nt" in os.name:
             available_drives = [f"{letter}:\\" for letter in string.ascii_uppercase if os.path.exists(f"{letter}:")]
-        return ", ".join(available_drives)
+        return_value = []
+        for drive_letter in available_drives:
+            return_value.append({
+                "name": drive_letter,
+                "path": drive_letter,
+                "item_type": "DIRECTORY",
+                "mime_type": "inode/directory"
+            })
+        return json.dumps(return_value)
 
 
 class ListDirectory(BaseCommandHandler):
