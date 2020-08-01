@@ -30,20 +30,28 @@ class ListDirectory(BaseCommandHandler):
             folder_path = os.path.abspath(args[0])
             if os.path.isdir(folder_path):
                 contained_items = []
-                fs_items = os.listdir(folder_path)                
-                for fs_item in fs_items:
-                    item_dict = {
-                        "name": fs_item,
-                        "path": os.path.join(folder_path, fs_item),
-                        "item_type": "UNKNOWN",
-                        "mime_type": "UNKNOWN"
-                    }
-                    if os.path.isfile(item_dict["path"]):
-                        item_dict["item_type"] = "FILE"
-                    elif os.path.isdir(item_dict["path"]):
-                        item_dict["item_type"] = "DIRECTORY"
-                        item_dict["mime_type"] = "inode/directory"
-                    contained_items.append(item_dict)
+                try:
+                    fs_items = os.listdir(folder_path)                
+                    for fs_item in fs_items:
+                        item_dict = {
+                            "name": fs_item,
+                            "path": os.path.join(folder_path, fs_item),
+                            "item_type": "UNKNOWN",
+                            "mime_type": "UNKNOWN"
+                        }
+                        if os.path.isfile(item_dict["path"]):
+                            item_dict["item_type"] = "FILE"
+                        elif os.path.isdir(item_dict["path"]):
+                            item_dict["item_type"] = "DIRECTORY"
+                            item_dict["mime_type"] = "inode/directory"
+                        contained_items.append(item_dict)
+                except (OSError, PermissionError) as e:
+                    contained_items.append({
+                        "name": str(e),
+                        "path": folder_path,
+                        "item_type": "ERROR",
+                        "mime_type": "ERROR"
+                    })
                 return_value = json.dumps(contained_items)
             else:
                 return_value = f"Invalid directory: {folder_path}"
