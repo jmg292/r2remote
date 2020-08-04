@@ -32,15 +32,18 @@ class GetAllFunctionGraphs(BaseCommandHandler):
         ]
         for line in all_function_graphs.split("\n"):
             if not self.reserved_statement_pattern.findall(line) and not line.strip().startswith("}") and not line.strip().startswith("digraph"):
-                graph_content.append(line)
+                graph_content.append(line.rstrip())
         return os.linesep.join(header_lines + graph_content + ["}"])
 
     def handle(self, *args):
         try:
             pipe = PipeHolder.get_pipe()
+            pipe.cmd("s main; aac; aaf")            
             all_function_graphs = pipe.cmd("agfd @@ fcn.*")
             # Because radare2 just vomits this all out as one big blob
             return_value = self._merge_graph(all_function_graphs)
+            with open("r2.graph", "w") as outfile:
+                outfile.write(return_value)
         except ValueError:
             return_value = "Pipe must be opened before graphing."
         return return_value

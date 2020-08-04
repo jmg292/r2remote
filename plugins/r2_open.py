@@ -11,6 +11,6 @@ class Open(BaseCommandHandler):
         if len(args):
             file_path = os.path.abspath(args[0])
             pipe = PipeHolder.get_pipe(file_path)
-            pipe.cmd("aaa")
+            pipe.cmd("aaa; aab; aac; aaf")
             return_value = f"{file_path} opened and analyzed."
         return return_value
