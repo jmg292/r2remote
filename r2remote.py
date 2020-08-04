@@ -22,7 +22,7 @@ class MessageHandler(socketserver.StreamRequestHandler, MessageHandlerMixin):
     def command_loop(self, message_wrapper):
         command_handler = CommandHandlerFactory.get_instance(configuration)
         while True:
-            split_message = self._get_message(message_wrapper).split()
+            split_message = self._get_message(message_wrapper, secure=configuration.secure).split()
             command = split_message[:1][0].lower()
             args = split_message[1:]
             if command == "exit":
@@ -31,7 +31,7 @@ class MessageHandler(socketserver.StreamRequestHandler, MessageHandlerMixin):
                 response = command_handler.handle_command(command, *args)
             else:
                 response = "Invalid command."
-            for packed_message in Message.packed_from_string(message_wrapper, response):
+            for packed_message in Message.packed_from_string(message_wrapper, response, secure=configuration.secure):
                 self._write_line(packed_message)
 
     def handle(self):
@@ -41,14 +41,17 @@ class MessageHandler(socketserver.StreamRequestHandler, MessageHandlerMixin):
         self.server.socket.settimeout(configuration.socket_timeout)
         self.socket = self.server.socket
         try:
-            print("[+] Sending handshake challenge . . .")
-            self._write_line(message_wrapper.get_challenge())
-            challenge_response = base64.b64decode(self.rfile.readline().strip())
-            # This will throw a permission error if client authorization fails.  Not ideal, but I can't reset the handshake yet, so this is the behavior I want for now
-            print("[+] Validating client response . . .")
-            server_response = message_wrapper.finalize_handshake(challenge_response)
-            print(f"[+] Successful authentication from client at {self.client_address[0]}")
-            self._write_line(server_response)            
+            if configuration.secure:
+                print("[+] Sending handshake challenge . . .")
+                self._write_line(message_wrapper.get_challenge())
+                challenge_response = base64.b64decode(self.rfile.readline().strip())
+                # This will throw a permission error if client authorization fails.  Not ideal, but I can't reset the handshake yet, so this is the behavior I want for now
+                print("[+] Validating client response . . .")
+                server_response = message_wrapper.finalize_handshake(challenge_response)
+                print(f"[+] Successful authentication from client at {self.client_address[0]}")
+                self._write_line(server_response)            
+            else:
+                print("[+] Security is disabled, skipping authentication handshake")
         finally:
             self.server.socket.settimeout(original_timeout)
         self.command_loop(message_wrapper)
@@ -79,6 +82,8 @@ if __name__ == "__main__":
     config_group = argument_parser.add_argument_group("Configuration")
     config_group.add_argument("--config-file", "-c", help="Path to configuration file", required=False, default=os.path.join(base_directory, "config.json"))
     config_group.add_argument("--generate-config", "-gc", help="Generate a new, empty configuration file and exit.", required=False, action="store_true")
+    security_group = argument_parser.add_argument_group("Security")
+    security_group.add_argument("--insecure", help="Disable authentication and encryption (Probably shouldn't ever use this.)", required=False, default=False, action="store_true")
 
     arguments = argument_parser.parse_args()
 
@@ -87,6 +92,7 @@ if __name__ == "__main__":
     if not arguments.generate_config:
         configuration = Configuration.from_file(config_path)
         resolve_absolute_paths(base_directory)
+        setattr(configuration, "secure", not arguments.insecure)
         setattr(configuration, "base_directory", base_directory)        
         print(f"[+] Starting server on {configuration.bind_addr}:{configuration.bind_port}")
         with socketserver.TCPServer((configuration.bind_addr, configuration.bind_port), MessageHandler) as tcp_server:
