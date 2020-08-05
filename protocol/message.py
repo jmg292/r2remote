@@ -1,5 +1,5 @@
 import json
-import zlib
+import gzip
 
 from typing import List
 
@@ -22,13 +22,13 @@ class Message(object):
             "total": self.total,
             "data": self.data
         }
-        message_data = zlib.compress(bytes(json.dumps(message_dict), 'utf-8'))
+        message_data = gzip.compress(bytes(json.dumps(message_dict), 'utf-8'))
         return (message_wrapper.encrypt(message_data) if self._secure else message_data)
 
     @staticmethod
     def unpack(data, message_wrapper, secure=True):        
         message_dict = json.loads(
-            zlib.decompress(
+            gzip.decompress(
                 message_wrapper.decrypt(data) if secure else data
             )
         )
