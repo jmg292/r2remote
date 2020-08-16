@@ -42,5 +42,8 @@ class CommandLoader(object):
                         loaded_module.on_load()
                     if hasattr(loaded_module, "on_unload"):
                         loaded_commands["_on_unload"].append(loaded_module.on_unload)
+                        print(f"[+] Registerd unload hook for {module_name}")
+                    else:
+                        print(f"[+] No unload hooks found for {module_name}")
                     loaded_commands = {**loaded_commands, **self._resolve_commands_in_module(loaded_module)}
         return loaded_commands

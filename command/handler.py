@@ -34,3 +34,7 @@ class CommandHandler(object):
             else:
                 response = self._available_commands[command].handle(*args)
         return response
+
+    def unload_all(self):
+        for unload_hook in self._available_commands["_on_unload"]:
+            unload_hook()

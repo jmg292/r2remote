@@ -58,6 +58,7 @@ class MessageHandler(socketserver.StreamRequestHandler, MessageHandlerMixin):
             self.server.socket.settimeout(original_timeout)
         self.command_loop(message_wrapper)
         print("[+] Session terminated.")
+        CommandHandlerFactory.get_instance(configuration).unload_all()
 
 
 def resolve_path(base_directory, path):
