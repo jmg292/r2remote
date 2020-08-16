@@ -24,6 +24,21 @@ class ListVolumes(BaseCommandHandler):
 
 class ListDirectory(BaseCommandHandler):
 
+    @staticmethod
+    def _get_item_dict(name, path):
+        item_dict = {
+            "name": name,
+            "path": path,
+            "item_type": "UNKNOWN",
+            "mime_type": "UNKNOWN"
+        }
+        if os.path.isdir(path):
+            item_dict["item_type"] = "DIRECTORY"
+            item_dict["mime_type"] = "inode/directory"
+        elif os.path.isfile(path):
+            item_dict["item_type"] = "FILE"
+        return item_dict
+
     def handle(self, *args):
         return_value = "Usage: list_directory [directory_path]"
         if len(args):
@@ -33,18 +48,10 @@ class ListDirectory(BaseCommandHandler):
                 try:
                     fs_items = os.listdir(folder_path)                
                     for fs_item in fs_items:
-                        item_dict = {
-                            "name": fs_item,
-                            "path": os.path.join(folder_path, fs_item),
-                            "item_type": "UNKNOWN",
-                            "mime_type": "UNKNOWN"
-                        }
-                        if os.path.isfile(item_dict["path"]):
-                            item_dict["item_type"] = "FILE"
-                        elif os.path.isdir(item_dict["path"]):
-                            item_dict["item_type"] = "DIRECTORY"
-                            item_dict["mime_type"] = "inode/directory"
-                        contained_items.append(item_dict)
+                        contained_items.append(self._get_item_dict(fs_item, os.path.join(folder_path, fs_item)))
+                    # Gotta add that back button
+                    parent_directory = os.path.abspath(os.path.join(folder_path, os.pardir))
+                    contained_items.append(self._get_item_dict("..", parent_directory))
                 except (OSError, PermissionError) as e:
                     contained_items.append({
                         "name": str(e),
