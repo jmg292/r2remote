@@ -6,6 +6,11 @@ from ._base_command_handler import BaseCommandHandler
 
 class Open(BaseCommandHandler):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        global _r2_opened
+        _r2_opened = False
+
     def handle(self, *args):
         global _r2_opened
         return_value = "Usage: open [file_path]"
