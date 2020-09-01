@@ -27,7 +27,6 @@ class Message(object):
 
     @staticmethod
     def unpack(data, message_wrapper, secure=True):      
-        print(gzip.decompress(data))  
         message_dict = json.loads(
             gzip.decompress(
                 message_wrapper.decrypt(data) if secure else data

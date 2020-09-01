@@ -3,7 +3,8 @@
         "list_filesystem",
         "r2_analysis",
         "r2_graph",
-        "r2_open"
+        "r2_open",
+        "r2_info"
     ],
     "identity_file_path": "keys\\local.key",
     "authorized_keys_folder": "keys\\authorized_keys",

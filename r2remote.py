@@ -21,6 +21,7 @@ class MessageHandler(socketserver.StreamRequestHandler, MessageHandlerMixin):
 
     def command_loop(self, message_wrapper):
         command_handler = CommandHandlerFactory.get_instance(configuration)
+        print(f"[+] Loaded commands: [{', '.join(command_handler.supported_commands)}]")
         while True:
             message = self._get_message(message_wrapper, secure=configuration.secure)
             if message:
@@ -33,6 +34,7 @@ class MessageHandler(socketserver.StreamRequestHandler, MessageHandlerMixin):
                     response = command_handler.handle_command(command, *args)
                 else:
                     response = "Invalid command."
+                print(f"[+] Responding to '{message}' with {response[160:]}")
                 for packed_message in Message.packed_from_string(message_wrapper, response, secure=configuration.secure):
                     self._write_line(packed_message)
 
